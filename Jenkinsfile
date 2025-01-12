@@ -12,14 +12,24 @@ pipeline {
                 script {
                     echo "Checking out from GitHub repository"
                 }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']], // Change 'main' to your branch name if different
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/MedAdemBHA/React-Inventory-Management-System-main.git', 
+                        credentialsId: "${GITHUB_CREDENTIALS_ID}"
+                    ]]
+                ])
             }
         }
- stage('Build Frontend') {
+        stage('Build Frontend') {
             steps {
                 dir('Frontend') {
                     script {
                         try {
-                            bat 'docker build -t %DOCKER_IMAGE_FRONTEND% .'
+                            sh 'docker build -t $DOCKER_IMAGE_FRONTEND .'
                         } catch (Exception e) {
                             error "Failed to build frontend: ${e.message}"
                         }
@@ -32,7 +42,7 @@ pipeline {
                 dir('Backend') {
                     script {
                         try {
-                            bat 'docker build -t %DOCKER_IMAGE_BACKEND% .'
+                            sh 'docker build -t $DOCKER_IMAGE_BACKEND .'
                         } catch (Exception e) {
                             error "Failed to build backend: ${e.message}"
                         }
@@ -40,24 +50,28 @@ pipeline {
                 }
             }
         }
-        stage('Scan Frontend') {
+        stage('Test Frontend') {
             steps {
-                script {
-                    try {
-                        bat 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.18.3 image %DOCKER_IMAGE_FRONTEND%'
-                    } catch (Exception e) {
-                        error "Failed to scan frontend: ${e.message}"
+                dir('Frontend') {
+                    script {
+                        try {
+                            sh 'docker run --rm $DOCKER_IMAGE_FRONTEND npm test'
+                        } catch (Exception e) {
+                            error "Failed to test frontend: ${e.message}"
+                        }
                     }
                 }
             }
         }
-        stage('Scan Backend') {
+        stage('Test Backend') {
             steps {
-                script {
-                    try {
-                        bat 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.18.3 image %DOCKER_IMAGE_BACKEND%'
-                    } catch (Exception e) {
-                        error "Failed to scan backend: ${e.message}"
+                dir('Backend') {
+                    script {
+                        try {
+                            sh 'docker run --rm $DOCKER_IMAGE_BACKEND npm test'
+                        } catch (Exception e) {
+                            error "Failed to test backend: ${e.message}"
+                        }
                     }
                 }
             }
@@ -67,9 +81,9 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         try {
-                            bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                            bat 'docker tag %DOCKER_IMAGE_FRONTEND% %DOCKER_USER%/%DOCKER_IMAGE_FRONTEND%:latest'
-                            bat 'docker push %DOCKER_USER%/%DOCKER_IMAGE_FRONTEND%:latest'
+                            sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                            sh 'docker tag $DOCKER_IMAGE_FRONTEND $DOCKER_USER/$DOCKER_IMAGE_FRONTEND:latest'
+                            sh 'docker push $DOCKER_USER/$DOCKER_IMAGE_FRONTEND:latest'
                         } catch (Exception e) {
                             error "Failed to push frontend: ${e.message}"
                         }
@@ -82,9 +96,9 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         try {
-                            bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                            bat 'docker tag %DOCKER_IMAGE_BACKEND% %DOCKER_USER%/%DOCKER_IMAGE_BACKEND%:latest'
-                            bat 'docker push %DOCKER_USER%/%DOCKER_IMAGE_BACKEND%:latest'
+                            sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                            sh 'docker tag $DOCKER_IMAGE_BACKEND $DOCKER_USER/$DOCKER_IMAGE_BACKEND:latest'
+                            sh 'docker push $DOCKER_USER/$DOCKER_IMAGE_BACKEND:latest'
                         } catch (Exception e) {
                             error "Failed to push backend: ${e.message}"
                         }
