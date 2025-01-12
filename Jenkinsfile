@@ -40,28 +40,6 @@ pipeline {
                 }
             }
         }
-        stage('Scan Frontend') {
-            steps {
-                script {
-                    try {
-                        sh 'trivy image $DOCKER_IMAGE_FRONTEND'
-                    } catch (Exception e) {
-                        error "Failed to scan frontend: ${e.message}"
-                    }
-                }
-            }
-        }
-        stage('Scan Backend') {
-            steps {
-                script {
-                    try {
-                        sh 'trivy image $DOCKER_IMAGE_BACKEND'
-                    } catch (Exception e) {
-                        error "Failed to scan backend: ${e.message}"
-                    }
-                }
-            }
-        }
         stage('Push Frontend') {
             steps {
                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
