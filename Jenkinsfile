@@ -12,16 +12,6 @@ pipeline {
                 script {
                     echo "Checking out from GitHub repository"
                 }
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']], // Change 'main' to your branch name if different
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/MedAdemBHA/React-Inventory-Management-System-main.git', 
-                        credentialsId: "${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}"
-                    ]]
-                ])
             }
         }
         stage('Build Frontend') {
