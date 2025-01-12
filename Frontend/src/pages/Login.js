@@ -74,7 +74,7 @@ function Login() {
             <img
               className="mx-auto h-12 w-auto"
               src={require("../assets/logo.png")}
-              alt="Your Company"
+              alt="Your Comp aeezr any"
             />
             <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
               Signin to your account
