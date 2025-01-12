@@ -19,7 +19,7 @@ pipeline {
                     extensions: [],
                     userRemoteConfigs: [[
                         url: 'https://github.com/MedAdemBHA/React-Inventory-Management-System-main.git', 
-                        credentialsId: "${g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}"
+                        credentialsId: "${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}"
                     ]]
                 ])
             }
